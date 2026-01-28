@@ -344,25 +344,6 @@ const uniqueSorted = pipe(
 - [ ] Export combined orders using `Order.combine`
 - [ ] Document which field takes precedence in combined orders
 
-### Schedulable types
-
-- [ ] isScheduledBefore
-- [ ] isScheduledAfter
-- [ ] isScheduledBetween
-- [ ] isScheduledOn
-- [ ] isScheduledToday
-- [ ] isScheduledThisWeek
-- [ ] isScheduledThisMonth
-- [ ] All Order instances
-
-### Durable types
-
-- [ ] hasMinimumDuration (isMoreThan)
-- [ ] hasMaximumDuration (isLessThan)
-- [ ] hasDurationBetween (isBetween)
-- [ ] hasExactDuration
-- [ ] All Order instances
-
 ### Domain-specific fields
 
 - [ ] Predicate for each variant (isPending, isActive, etc.)

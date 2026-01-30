@@ -23,16 +23,18 @@ import { Schema } from "effect";
 
 // Entity IDs - always branded with namespace
 export const UserId = Schema.UUID.pipe(Schema.brand("@App/UserId"));
-export type UserId = Schema.Schema.Type<typeof UserId>;
+export type UserId = typeof UserId.Type;
 
-export const OrganizationId = Schema.UUID.pipe(Schema.brand("@App/OrganizationId"));
-export type OrganizationId = Schema.Schema.Type<typeof OrganizationId>;
+export const OrganizationId = Schema.UUID.pipe(
+  Schema.brand("@App/OrganizationId"),
+);
+export type OrganizationId = typeof OrganizationId.Type;
 
 export const OrderId = Schema.UUID.pipe(Schema.brand("@App/OrderId"));
-export type OrderId = Schema.Schema.Type<typeof OrderId>;
+export type OrderId = typeof OrderId.Type;
 
 export const ProductId = Schema.UUID.pipe(Schema.brand("@App/ProductId"));
-export type ProductId = Schema.Schema.Type<typeof ProductId>;
+export type ProductId = typeof ProductId.Type;
 ```
 
 ### Branding Convention
@@ -87,7 +89,7 @@ export const User = Schema.Struct({
   createdAt: Schema.DateTimeUtc,
   updatedAt: Schema.DateTimeUtc,
 });
-export type User = Schema.Schema.Type<typeof User>;
+export type User = typeof User.Type;
 
 // Can derive encoded type for database/API
 export type UserEncoded = Schema.Schema.Encoded<typeof User>;
@@ -107,13 +109,13 @@ export const CreateUserInput = Schema.Struct({
     default: () => "member" as const,
   }),
 });
-export type CreateUserInput = Schema.Schema.Type<typeof CreateUserInput>;
+export type CreateUserInput = typeof CreateUserInput.Type;
 
 export const UpdateUserInput = Schema.Struct({
   name: Schema.optional(Schema.String.pipe(Schema.minLength(1))),
   role: Schema.optional(Schema.Literal("admin", "member", "viewer")),
 });
-export type UpdateUserInput = Schema.Schema.Type<typeof UpdateUserInput>;
+export type UpdateUserInput = typeof UpdateUserInput.Type;
 ```
 
 ## Schema.transform and transformOrFail
@@ -138,7 +140,7 @@ export const PositiveNumber = Schema.transformOrFail(
   {
     decode: (n, _, ast) =>
       n > 0
-        ? ParseResult.succeed(n as Schema.Schema.Type<typeof PositiveNumber>)
+        ? ParseResult.succeed(n as typeof PositiveNumber.Type)
         : ParseResult.fail(new ParseResult.Type(ast, n, "Must be positive")),
     encode: ParseResult.succeed,
   },
@@ -292,14 +294,16 @@ export const PaymentDetails = Schema.Union(
     network: Schema.Literal("ethereum", "bitcoin", "solana"),
   }),
 );
-export type PaymentDetails = Schema.Schema.Type<typeof PaymentDetails>;
+export type PaymentDetails = typeof PaymentDetails.Type;
 
 // Usage with Match.valueTags
 const processPayment = (details: PaymentDetails) =>
   Match.valueTags(details, {
     Card: ({ cardNumber, expiry, cvv }) => processCard(cardNumber, expiry, cvv),
-    BankTransfer: ({ accountNumber, routingNumber }) => processBankTransfer(accountNumber, routingNumber),
-    Crypto: ({ walletAddress, network }) => processCrypto(walletAddress, network),
+    BankTransfer: ({ accountNumber, routingNumber }) =>
+      processBankTransfer(accountNumber, routingNumber),
+    Crypto: ({ walletAddress, network }) =>
+      processCrypto(walletAddress, network),
   });
 ```
 
@@ -308,7 +312,7 @@ const processPayment = (details: PaymentDetails) =>
 ```typescript
 // Use Literal for small, fixed sets
 export const UserRole = Schema.Literal("admin", "member", "viewer");
-export type UserRole = Schema.Schema.Type<typeof UserRole>;
+export type UserRole = typeof UserRole.Type;
 
 // Use Enums for larger sets or when you need runtime values
 export const OrderStatus = Schema.Enums({
@@ -318,7 +322,7 @@ export const OrderStatus = Schema.Enums({
   Delivered: "delivered",
   Cancelled: "cancelled",
 } as const);
-export type OrderStatus = Schema.Schema.Type<typeof OrderStatus>;
+export type OrderStatus = typeof OrderStatus.Type;
 ```
 
 ## Recursive Schemas

@@ -28,18 +28,18 @@ Effect<Success, Error, Requirements>
 const result = value.pipe(
   Effect.map((n) => n * 2),
   Effect.flatMap((n) => processValue(n)),
-  Effect.catchTag("NetworkError", () => Effect.succeed(fallback))
-)
+  Effect.catchTag("NetworkError", () => Effect.succeed(fallback)),
+);
 
 // ❌ BAD: Function-first style
 const result = Effect.catchTag(
   Effect.flatMap(
     Effect.map(value, (n) => n * 2),
-    (n) => processValue(n)
+    (n) => processValue(n),
   ),
   "NetworkError",
-  () => Effect.succeed(fallback)
-)
+  () => Effect.succeed(fallback),
+);
 ```
 
 ### "@effect/schema" is deprecated
@@ -49,10 +49,10 @@ Instead just import from "effect" package.
 
 ```typescript
 // ✅ GOOD
-import { Schema } from "effect"
+import { Schema } from "effect";
 
 // ❌ BAD
-import { Schema } from "@effect/schema"
+import { Schema } from "@effect/schema";
 ```
 
 ## Quick Reference: Critical Rules
@@ -159,7 +159,8 @@ export class UserCreateError extends Schema.TaggedError<UserCreateError>()(
 
 ```typescript
 // ✅ CORRECT - preserves type information
-yield* repo.findById(id).pipe(
+yield *
+  repo.findById(id).pipe(
     Effect.catchTag("DatabaseError", (err) =>
       Effect.fail(
         new UserNotFoundError({ userId: id, message: "Lookup failed" }),
@@ -173,7 +174,8 @@ yield* repo.findById(id).pipe(
   );
 
 // ✅ CORRECT - multiple tags at once
-yield* effect.pipe(
+yield *
+  effect.pipe(
     Effect.catchTags({
       DatabaseError: (err) =>
         Effect.fail(
@@ -206,12 +208,12 @@ import { Schema } from "effect";
 
 // Entity IDs - always branded
 export const UserId = Schema.UUID.pipe(Schema.brand("@App/UserId"));
-export type UserId = Schema.Schema.Type<typeof UserId>;
+export type UserId = typeof UserId.Type;
 
 export const OrganizationId = Schema.UUID.pipe(
   Schema.brand("@App/OrganizationId"),
 );
-export type OrganizationId = Schema.Schema.Type<typeof OrganizationId>;
+export type OrganizationId = typeof OrganizationId.Type;
 
 // Domain types - use Schema.Struct
 export const User = Schema.Struct({
@@ -221,7 +223,7 @@ export const User = Schema.Struct({
   organizationId: OrganizationId,
   createdAt: Schema.DateTimeUtc,
 });
-export type User = Schema.Schema.Type<typeof User>;
+export type User = typeof User.Type;
 
 // Input types for mutations
 export const CreateUserInput = Schema.Struct({
@@ -229,7 +231,7 @@ export const CreateUserInput = Schema.Struct({
   name: Schema.String.pipe(Schema.minLength(1)),
   organizationId: OrganizationId,
 });
-export type CreateUserInput = Schema.Schema.Type<typeof CreateUserInput>;
+export type CreateUserInput = typeof CreateUserInput.Type;
 ```
 
 **When NOT to brand:**
@@ -311,7 +313,8 @@ See `references/layer-patterns.md` for testing layers and config-dependent layer
 
 ```typescript
 // ✅ CORRECT - explicit handling
-yield* Option.match(maybeUser, {
+yield *
+  Option.match(maybeUser, {
     onNone: () =>
       Effect.fail(new UserNotFoundError({ userId, message: "Not found" })),
     onSome: (user) => Effect.succeed(user),

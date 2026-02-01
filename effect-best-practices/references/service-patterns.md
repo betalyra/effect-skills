@@ -5,6 +5,7 @@
 - [Effect.Service Over Context.Tag](#effectservice-over-contexttag)
 - [Effect.fn for Tracing](#effectfn-for-tracing)
 - [When Context.Tag is Acceptable](#when-contexttag-is-acceptable)
+- [Templates](#templates)
 - [Single Responsibility](#single-responsibility)
 - [Capability-Based Services](#capability-based-services)
 - [No Requirement Leakage in Service Interface](#no-requirement-leakage-in-service-interface)
@@ -200,6 +201,59 @@ const DatabaseLive = PgClient.layer({
     database: Config.string("DB_NAME"),
     // ...
 })
+```
+
+## Templates
+
+### Context.Tag Service Template
+
+Use this template when creating infrastructure services or services with runtime injection (see [When Context.Tag is Acceptable](#when-contexttag-is-acceptable)):
+
+```typescript
+import { Context, Effect, Layer } from "effect"
+
+export class {{ServiceName}} extends Context.Tag(
+  "{{ServiceName}}",
+)<{{ServiceName}}, {
+  // Define the service interface here
+}>() {}
+
+export const {{ServiceName}}Live = Layer.effect(
+  {{ServiceName}},
+  Effect.gen(function* () {
+    // Yield dependencies here
+    // const config = yield* Config
+
+    return {
+      // Implement the interface
+    } as const
+  })
+)
+```
+
+Replace `{{ServiceName}}` with your actual service name (e.g., `KVStore`, `RedisClient`).
+
+**Example usage:**
+
+```typescript
+export class CacheStore extends Context.Tag(
+  "CacheStore",
+)<CacheStore, {
+  readonly get: (key: string) => Effect.Effect<Option<string>>
+  readonly set: (key: string, value: string) => Effect.Effect<void>
+}>() {}
+
+export const CacheStoreLive = Layer.effect(
+  CacheStore,
+  Effect.gen(function* () {
+    const redis = yield* RedisClient
+
+    return {
+      get: (key) => redis.get(key),
+      set: (key, value) => redis.set(key, value),
+    } as const
+  })
+)
 ```
 
 ## Single Responsibility

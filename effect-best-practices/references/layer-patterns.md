@@ -57,7 +57,6 @@ export const LoggerLive = Layer.effect(
 
 ```typescript
 export class OrderService extends Effect.Service<OrderService>()("OrderService", {
-    accessors: true,
     dependencies: [
         UserService.Default,
         ProductService.Default,
@@ -89,7 +88,6 @@ const AppLive = Layer.mergeAll(
 ```typescript
 // WRONG - Dependencies not declared
 export class OrderService extends Effect.Service<OrderService>()("OrderService", {
-    accessors: true,
     effect: Effect.gen(function* () {
         const users = yield* UserService // Not in dependencies!
         // ...
@@ -130,7 +128,6 @@ const DatabaseLive = PgClient.layer({
 
 // Services use database but don't declare it in dependencies
 export class UserRepo extends Effect.Service<UserRepo>()("UserRepo", {
-    accessors: true,
     // No dependencies array - PgClient provided at app root
     effect: Effect.gen(function* () {
         const sql = yield* PgClient.PgClient
@@ -216,7 +213,6 @@ export const UserServiceTest = Layer.succeed(
 
 // Test with in-memory state
 export class UserServiceInMemory extends Effect.Service<UserService>()("UserService", {
-    accessors: true,
     effect: Effect.gen(function* () {
         const store = new Map<string, User>()
 
@@ -304,7 +300,6 @@ const DatabaseConnectionLive = Layer.scoped(
 
 // Service using scoped resource
 export class UserRepo extends Effect.Service<UserRepo>()("UserRepo", {
-    accessors: true,
     effect: Effect.gen(function* () {
         const db = yield* DatabaseConnection
 
@@ -338,7 +333,8 @@ import { TestLive } from "./setup"
 describe("UserService", () => {
     it("creates users", async () => {
         const program = Effect.gen(function* () {
-            const user = yield* UserService.create({
+            const userService = yield* UserService
+            const user = yield* userService.create({
                 email: "test@example.com",
                 name: "Test User",
             })

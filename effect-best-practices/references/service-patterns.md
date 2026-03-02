@@ -18,9 +18,8 @@
 **Always prefer `Effect.Service`** for defining business logic services. This is the modern, recommended approach that provides:
 
 1. **Built-in `Default` layer** - No manual layer creation needed
-2. **Automatic accessors** - Direct method calls via `ServiceName.method()`
-3. **Proper dependency declaration** - Dependencies are explicit and type-checked
-4. **Consistent structure** - All services follow the same pattern
+2. **Proper dependency declaration** - Dependencies are explicit and type-checked
+3. **Consistent structure** - All services follow the same pattern
 
 ### Basic Service Definition
 
@@ -28,7 +27,6 @@
 import { Effect, Layer } from "effect"
 
 export class UserService extends Effect.Service<UserService>()("UserService", {
-    accessors: true,
     effect: Effect.gen(function* () {
         const findById = Effect.fn("UserService.findById")(function* (id: UserId) {
             // Implementation
@@ -57,7 +55,6 @@ export class UserService extends Effect.Service<UserService>()("UserService", {
 
 ```typescript
 export class OrderService extends Effect.Service<OrderService>()("OrderService", {
-    accessors: true,
     dependencies: [
         UserService.Default,
         ProductService.Default,
@@ -97,7 +94,6 @@ export class OrderService extends Effect.Service<OrderService>()("OrderService",
 ```typescript
 // WRONG - Dependencies not declared, must be provided manually
 export class OrderService extends Effect.Service<OrderService>()("OrderService", {
-    accessors: true,
     effect: Effect.gen(function* () {
         const users = yield* UserService  // Dependency not in `dependencies` array!
         // ...
@@ -480,7 +476,6 @@ export const UserServiceTest = Layer.succeed(
 
 // Or with Effect.Service for stateful mocks
 export class UserServiceTest extends Effect.Service<UserService>()("UserService", {
-    accessors: true,
     effect: Effect.gen(function* () {
         const users = new Map<string, User>()
 

@@ -356,9 +356,10 @@ const createOrder = HttpApiEndpoint.post("createOrder", "/orders")
 const createOrderHandler = Effect.gen(function* () {
     const input = yield* HttpApi.payload
     const workflowClient = yield* WorkflowClient
+    const orderService = yield* OrderService
 
     // Create order in database
-    const order = yield* OrderService.create(input)
+    const order = yield* orderService.create(input)
 
     // Trigger async fulfillment workflow
     yield* workflowClient.workflows.OrderFulfillmentWorkflow.execute({
@@ -377,7 +378,6 @@ const createOrderHandler = Effect.gen(function* () {
 
 ```typescript
 export class MessageService extends Effect.Service<MessageService>()("MessageService", {
-    accessors: true,
     dependencies: [MessageRepo.Default, WorkflowClient.Default],
     effect: Effect.gen(function* () {
         const repo = yield* MessageRepo

@@ -12,6 +12,7 @@
 - [null/undefined in Domain Types](#forbidden-nullundefined-in-domain-types)
 - [Option.getOrThrow](#forbidden-optiongetorthrow)
 - [Context.Tag for Business Services](#forbidden-contexttag-for-business-services)
+- [accessors: true in Effect.Service](#forbidden-accessors-true-in-effectservice)
 - [Ignoring Errors with orDie](#forbidden-ignoring-errors-with-ordie)
 - [mapError Instead of catchTag](#forbidden-maperror-instead-of-catchtag)
 - [Mixing Effect and Promise Chains](#forbidden-mixing-effect-and-promise-chains)
@@ -244,16 +245,46 @@ export class UserService extends Context.Tag("UserService")<
 }
 ```
 
-**Why:** Requires manual layer creation, no built-in accessors, more boilerplate.
+**Why:** Requires manual layer creation, more boilerplate.
 
 **Correct:**
 
 ```typescript
 export class UserService extends Effect.Service<UserService>()("UserService", {
-    accessors: true,
     dependencies: [...],
     effect: Effect.gen(function* () { ... }),
 }) {}
+```
+
+## FORBIDDEN: accessors: true in Effect.Service
+
+```typescript
+// FORBIDDEN
+export class UserService extends Effect.Service<UserService>()("UserService", {
+    accessors: true,
+    effect: Effect.gen(function* () {
+        // ...
+    }),
+}) {}
+```
+
+**Why:** Accessors are deprecated and should not be used. Access service methods through the service instance obtained via `yield*` instead.
+
+**Correct:**
+
+```typescript
+export class UserService extends Effect.Service<UserService>()("UserService", {
+    effect: Effect.gen(function* () {
+        // ...
+    }),
+}) {}
+
+// Access methods through the service instance
+const program = Effect.gen(function* () {
+    const userService = yield* UserService
+    const user = yield* userService.findById(userId)
+    return user
+})
 ```
 
 ## FORBIDDEN: Ignoring Errors with orDie

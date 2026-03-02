@@ -78,13 +78,12 @@ import { Schema } from "@effect/schema";
 
 ## Service Definition Pattern
 
-**Always use `Effect.Service`** for business logic services. This provides automatic accessors, built-in `Default` layer, and proper dependency declaration.
+**Always use `Effect.Service`** for business logic services. This provides built-in `Default` layer and proper dependency declaration.
 
 ```typescript
 import { Effect } from "effect";
 
 export class UserService extends Effect.Service<UserService>()("UserService", {
-  accessors: true,
   dependencies: [UserRepo.Default, CacheService.Default],
   effect: Effect.gen(function* () {
     const repo = yield* UserRepo;
@@ -113,7 +112,8 @@ export class UserService extends Effect.Service<UserService>()("UserService", {
 
 // Usage - dependencies are already wired
 const program = Effect.gen(function* () {
-  const user = yield* UserService.findById(userId);
+  const userService = yield* UserService;
+  const user = yield* userService.findById(userId);
   return user;
 });
 
@@ -281,7 +281,6 @@ const transfer = Effect.fn("AccountService.transfer")(function* (
 export class OrderService extends Effect.Service<OrderService>()(
   "OrderService",
   {
-    accessors: true,
     dependencies: [
       UserService.Default,
       ProductService.Default,
@@ -433,6 +432,11 @@ const key = process.env.API_KEY; // Use Config.string("API_KEY")
 
 // FORBIDDEN - null/undefined in domain types
 type User = { name: string | null }; // Use Option<string>
+
+// FORBIDDEN - accessors: true in Effect.Service
+export class MyService extends Effect.Service<MyService>()("MyService", {
+  accessors: true, // Never use accessors
+})
 ```
 
 See `references/anti-patterns.md` for the complete list with rationale.

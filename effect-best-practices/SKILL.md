@@ -407,6 +407,44 @@ For RPC contracts and cluster workflows, see:
 
 - `references/rpc-cluster-patterns.md` - RpcGroup, Workflow.make, Activity patterns
 
+## Vercel AI SDK Integration
+
+Use `Schema.standardSchemaV1` to pass Effect schemas as tool input schemas in the Vercel AI SDK:
+
+```typescript
+import { Schema } from "effect"
+import { tool } from "ai"
+
+const SearchInput = Schema.Struct({
+  query: Schema.String,
+  limit: Schema.optionalWith(Schema.Number, { default: () => 10 }),
+})
+
+const search = tool({
+  description: "Search for items matching a query",
+  inputSchema: Schema.standardSchemaV1(SearchInput),
+  execute: ({ query, limit }) => {
+    // ...
+  },
+})
+```
+
+**Tools with no arguments** — many AI providers reject empty schemas. Use a record with an impossible value type instead:
+
+```typescript
+const NoArgs = Schema.Record({ key: Schema.String, value: Schema.Never })
+
+const getCurrentTime = tool({
+  description: "Get the current server time",
+  inputSchema: Schema.standardSchemaV1(NoArgs),
+  execute: () => {
+    // ...
+  },
+})
+```
+
+See `references/vercel-ai-sdk-patterns.md` for complete patterns including Effect service integration.
+
 ## Anti-Patterns (Forbidden)
 
 These patterns are **never acceptable**:
@@ -474,6 +512,7 @@ For detailed patterns, consult these reference files in the `references/` direct
 - `domain-predicates.md` - Equivalence, Order, typeclass-derived predicates
 - `rpc-cluster-patterns.md` - RpcGroup, Workflow, Activity patterns
 - `effect-atom-patterns.md` - Atom, families, React hooks, Result handling
+- `vercel-ai-sdk-patterns.md` - Vercel AI SDK tool definitions with Effect Schema
 - `anti-patterns.md` - Complete list of forbidden patterns
 - `observability-patterns.md` - Logging, metrics, config patterns
 - `effect-test-patterns.md` - Testing patterns for effect based applications

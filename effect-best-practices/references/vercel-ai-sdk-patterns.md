@@ -56,10 +56,6 @@ const NoArgs = Schema.Record({ key: Schema.String, value: Schema.Never })
 
 export const createAgentTools = () =>
   Effect.gen(function* () {
-    // Yield services to ensure they are captured in the runtime
-    yield* UserService
-    yield* NotificationService
-
     const runtime = yield* Effect.runtime<UserService | NotificationService>()
     const runPromise = Runtime.runPromise(runtime)
 

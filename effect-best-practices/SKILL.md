@@ -407,6 +407,12 @@ For RPC contracts and cluster workflows, see:
 
 - `references/rpc-cluster-patterns.md` - RpcGroup, Workflow.make, Activity patterns
 
+## Vercel AI SDK Integration
+
+Use `Schema.standardSchemaV1` to bridge Effect schemas to the Vercel AI SDK's `inputSchema`. For tools with no arguments, use `Schema.Record({ key: Schema.String, value: Schema.Never })` — many providers reject empty schemas. When tool execute functions need Effect services, capture the runtime via `Effect.runtime<Deps>()` in a factory function and use `Runtime.runPromise` — do not use bare `Effect.runPromise` with unsatisfied dependencies.
+
+See `references/vercel-ai-sdk-patterns.md` for complete patterns.
+
 ## Anti-Patterns (Forbidden)
 
 These patterns are **never acceptable**:
@@ -474,6 +480,7 @@ For detailed patterns, consult these reference files in the `references/` direct
 - `domain-predicates.md` - Equivalence, Order, typeclass-derived predicates
 - `rpc-cluster-patterns.md` - RpcGroup, Workflow, Activity patterns
 - `effect-atom-patterns.md` - Atom, families, React hooks, Result handling
+- `vercel-ai-sdk-patterns.md` - Vercel AI SDK tool definitions with Effect Schema
 - `anti-patterns.md` - Complete list of forbidden patterns
 - `observability-patterns.md` - Logging, metrics, config patterns
 - `effect-test-patterns.md` - Testing patterns for effect based applications

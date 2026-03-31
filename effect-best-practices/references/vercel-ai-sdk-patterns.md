@@ -44,24 +44,67 @@ const getCurrentTime = tool({
 
 This produces a valid `{ "type": "object" }` JSON Schema that all providers accept, while ensuring no actual arguments can be passed at the type level.
 
-### Combining with Effect Services
+### Running Effects in Tool Execute Functions
 
-When tools need to run effects, convert the result with `Effect.runPromise` at the tool boundary:
+Tool `execute` functions must return a `Promise`. When the tool's logic requires Effect services, capture the runtime with the needed dependencies and use `Runtime.runPromise` to execute each tool:
 
 ```typescript
-import { Effect, Schema } from "effect"
+import { Effect, Runtime, Schema } from "effect"
 import { tool } from "ai"
 
-const CreateUserInput = Schema.Struct({
-  name: Schema.String,
-  email: Schema.String,
-})
+const NoArgs = Schema.Record({ key: Schema.String, value: Schema.Never })
 
-const createUser = tool({
-  description: "Create a new user",
-  inputSchema: Schema.standardSchemaV1(CreateUserInput),
-  execute: ({ name, email }) =>
-    createUserEffect(name, email).pipe(Effect.runPromise),
+export const createAgentTools = () =>
+  Effect.gen(function* () {
+    // Yield services to ensure they are captured in the runtime
+    yield* UserService
+    yield* NotificationService
+
+    const runtime = yield* Effect.runtime<UserService | NotificationService>()
+    const runPromise = Runtime.runPromise(runtime)
+
+    return {
+      listUsers: tool({
+        description: "List all active users",
+        inputSchema: Schema.standardSchemaV1(NoArgs),
+        execute: () =>
+          Effect.gen(function* () {
+            const users = yield* UserService
+            return yield* users.listActive()
+          }).pipe(runPromise),
+      }),
+
+      createUser: tool({
+        description: "Create a new user and send a welcome notification",
+        inputSchema: Schema.standardSchemaV1(CreateUserInput),
+        execute: ({ name, email }) =>
+          Effect.gen(function* () {
+            const users = yield* UserService
+            const notifications = yield* NotificationService
+            const user = yield* users.create({ name, email })
+            yield* notifications.sendWelcome(user.id)
+            return user
+          }).pipe(
+            Effect.catchTag("UserCreateError", (e) =>
+              Effect.succeed({ error: e.message }),
+            ),
+            runPromise,
+          ),
+      }),
+    }
+  })
+```
+
+The key pattern: define a **factory function** that returns an `Effect` yielding the tool definitions. Inside the generator, yield the required services, capture the runtime, and derive `runPromise` from it. Each tool's `execute` can then use `runPromise` to run effects with full access to those services.
+
+For simple tools with **no dependencies**, `Effect.runPromise` directly is acceptable:
+
+```typescript
+const echo = tool({
+  description: "Echo the input back",
+  inputSchema: Schema.standardSchemaV1(EchoInput),
+  execute: ({ message }) =>
+    Effect.succeed(`Echo: ${message}`).pipe(Effect.runPromise),
 })
 ```
 
@@ -80,4 +123,14 @@ const bad = tool({
   parameters: z.object({ query: z.string() }),
   // ❌ Don't mix schema libraries — use Schema.standardSchemaV1 consistently
 })
+
+// FORBIDDEN - Effect.runPromise when the tool needs service dependencies
+const bad = tool({
+  execute: ({ id }) =>
+    UserService.pipe(
+      Effect.flatMap((svc) => svc.findById(id)),
+      Effect.runPromise, // ❌ Dependencies are not provided — this will fail at runtime
+    ),
+})
+// ✅ Instead, capture the runtime with dependencies (see "Running Effects" section above)
 ```

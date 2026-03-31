@@ -409,9 +409,9 @@ For RPC contracts and cluster workflows, see:
 
 ## Vercel AI SDK Integration
 
-Use `Schema.standardSchemaV1` to bridge Effect schemas to the Vercel AI SDK's `inputSchema`. For tools with no arguments, use `Schema.Record({ key: Schema.String, value: Schema.Never })` — many providers reject empty schemas.
+Use `Schema.standardSchemaV1` to bridge Effect schemas to the Vercel AI SDK's `inputSchema`. For tools with no arguments, use `Schema.Record({ key: Schema.String, value: Schema.Never })` — many providers reject empty schemas. When tool execute functions need Effect services, capture the runtime via `Effect.runtime<Deps>()` in a factory function and use `Runtime.runPromise` — do not use bare `Effect.runPromise` with unsatisfied dependencies.
 
-See `references/vercel-ai-sdk-patterns.md` for tool definitions, the `NoArgs` pattern, and Effect service integration.
+See `references/vercel-ai-sdk-patterns.md` for complete patterns.
 
 ## Anti-Patterns (Forbidden)
 

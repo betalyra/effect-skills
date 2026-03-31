@@ -91,18 +91,9 @@ export const createAgentTools = () =>
   })
 ```
 
-The key pattern: define a **factory function** that returns an `Effect` yielding the tool definitions. Inside the generator, yield the required services, capture the runtime, and derive `runPromise` from it. Each tool's `execute` can then use `runPromise` to run effects with full access to those services.
+The key pattern: define a **factory function** that returns an `Effect` yielding the tool definitions. Inside the generator, capture the runtime and derive `runPromise` from it. Each tool's `execute` can then use `runPromise` to run effects with full access to services and runtime configuration (log level, log printer, spans, etc.).
 
-For simple tools with **no dependencies**, `Effect.runPromise` directly is acceptable:
-
-```typescript
-const echo = tool({
-  description: "Echo the input back",
-  inputSchema: Schema.standardSchemaV1(EchoInput),
-  execute: ({ message }) =>
-    Effect.succeed(`Echo: ${message}`).pipe(Effect.runPromise),
-})
-```
+**Always use the runtime capture pattern** — even for tools with no service dependencies. Using bare `Effect.runPromise` bypasses the configured runtime, losing log levels, log printers, metrics, and other infrastructure set up in your layers.
 
 ### Anti-Patterns
 
@@ -120,13 +111,11 @@ const bad = tool({
   // ❌ Don't mix schema libraries — use Schema.standardSchemaV1 consistently
 })
 
-// FORBIDDEN - Effect.runPromise when the tool needs service dependencies
+// FORBIDDEN - bare Effect.runPromise in tool execute functions
 const bad = tool({
-  execute: ({ id }) =>
-    UserService.pipe(
-      Effect.flatMap((svc) => svc.findById(id)),
-      Effect.runPromise, // ❌ Dependencies are not provided — this will fail at runtime
-    ),
+  execute: ({ message }) =>
+    Effect.succeed(message).pipe(Effect.runPromise),
+  // ❌ Bypasses the configured runtime — loses log levels, log printers, metrics, spans
 })
-// ✅ Instead, capture the runtime with dependencies (see "Running Effects" section above)
+// ✅ Always use Runtime.runPromise with a captured runtime (see "Running Effects" section above)
 ```

@@ -1,11 +1,13 @@
 ---
-name: effect-best-practices
-description: Enforces Effect-TS patterns for services, errors, layers, and atoms. Use when writing code with Effect.Service, Schema.TaggedError, Layer composition, or effect-atom React components.
+name: effect-best-practices-v3
+description: Enforces Effect-TS v3 patterns for services, errors, layers, and atoms. Use when writing code with Effect.Service, Schema.TaggedError, Layer composition, or effect-atom React components.
 ---
 
-# Effect-TS Best Practices
+# Effect-TS v3 Best Practices
 
-This skill enforces opinionated, consistent patterns for Effect-TS codebases. These patterns optimize for type safety, testability, observability, and maintainability.
+This skill enforces opinionated, consistent patterns for **Effect v3** codebases (`effect@3.x`). These patterns optimize for type safety, testability, observability, and maintainability.
+
+> **Using Effect v4?** Use the `effect-best-practices-v4` skill instead. v4 replaced `Effect.Service` with `Context.Service`, renamed `Schema.TaggedError` to `Schema.TaggedErrorClass`, moved `@effect/platform`, `@effect/rpc`, and `@effect/cluster` into `effect/unstable/*`, and reworked much of the Schema API.
 
 ## Core Principles
 
